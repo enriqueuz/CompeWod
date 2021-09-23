@@ -1,0 +1,19 @@
+version: '3'
+
+services: 
+    db:
+        image: postgres:13
+        env_file: .env
+    
+    web:
+        build: 
+            context: ./backend
+        env_file: .env
+        working_dir: /code/backend
+        command: python manage.py runserver 0.0.0.0:8000
+        volumes:
+            - .:/code
+        ports:
+            - "8000:8000"
+        depends_on: 
+            - db
