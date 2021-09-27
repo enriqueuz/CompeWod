@@ -1,13 +1,11 @@
 """ User's views. """
 
 # Django
-from django.contrib.sessions.models import Session
 
 # REST Framework
 from rest_framework.response import Response
 from rest_framework import status, viewsets
 from rest_framework.decorators import action
-from rest_framework.authtoken.views import ObtainAuthToken
 from rest_framework.authtoken.models import Token
 from rest_framework.authtoken.serializers import AuthTokenSerializer
 
@@ -15,46 +13,7 @@ from rest_framework.authtoken.serializers import AuthTokenSerializer
 from .serializers import UserTokenSerializer
 
 # Utils
-from datetime import datetime
-
-# class Login(ObtainAuthToken):
-#     """ Login view."""
-
-#     def post(self, request, *args, **kwargs):
-#         login_serializer = self.serializer_class(
-#                             data=request.data, 
-#                             context = {'request': request}
-#                             )
-#         if login_serializer.is_valid():
-#             user = login_serializer.validated_data['user']
-#             token, created = Token.objects.get_or_create(user=user)
-#             user_serializer = UserTokenSerializer(user)
-
-#             if not created:
-#                 # If user logs in again delete previous session
-#                 all_sessions = Session.objects.filter(
-#                                 expire_date__gte=datetime.now()
-#                                 )
-#                 if all_sessions.exists():
-#                     for session in all_sessions:
-#                         session_data = session.get_decoded()
-#                         if user.id == int(session_data.get('_auth_user_id')):
-#                             session.delete()
-                            
-#                 token.delete()
-#                 token = Token.objects.create(user=user)
-
-#             return Response({
-#                             'token': token.key,
-#                             'user': user_serializer.data,
-#                             'message': 'Successfully logged in!'
-#                             }, status=status.HTTP_201_CREATED
-#                         )
-#         else:
-#             return Response({'error':'Wrong email or password'}, 
-#                             status=status.HTTP_400_BAD_REQUEST)
-        
-        # return Response({'message':'Hola desde response'}, status=status.HTTP_200_OK)
+from .utils import delete_user_sessions
 
 class UserViewSet(viewsets.GenericViewSet):
     """ User view set.
@@ -74,16 +33,7 @@ class UserViewSet(viewsets.GenericViewSet):
             user_serializer = UserTokenSerializer(user)
 
             if not created:
-                # If user logs in again delete previous session
-                all_sessions = Session.objects.filter(
-                                expire_date__gte=datetime.now()
-                                )
-                if all_sessions.exists():
-                    for session in all_sessions:
-                        session_data = session.get_decoded()
-                        if user.id == int(session_data.get('_auth_user_id')):
-                            session.delete()
-                            
+                delete_user_sessions(user_id=user.id)
                 token.delete()
                 token = Token.objects.create(user=user)
 
@@ -96,3 +46,24 @@ class UserViewSet(viewsets.GenericViewSet):
         else:
             return Response({'error':'Wrong email or password'}, 
                             status=status.HTTP_400_BAD_REQUEST)
+    
+    @action(detail=False, methods=['post'])
+    def logout(self, request):
+        """ User log out. """
+        token = request.META.get('HTTP_AUTHORIZATION').split()[-1]
+        token = Token.objects.filter(key=token).first()
+
+        if token:
+            user = token.user
+            delete_user_sessions(user_id=user.id)
+            token.delete()
+
+            return Response(
+                {'message': 'You have logged out.'}, 
+                status=status.HTTP_200_OK
+                )
+
+        return Response(
+                {'message': 'There is no user with these credentials'}, 
+                status=status.HTTP_400_BAD_REQUEST
+                )
