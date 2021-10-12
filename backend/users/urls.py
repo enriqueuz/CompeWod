@@ -1,15 +1,3 @@
-# """ Users URL's. """
-
-# # Django
-# from django.urls import path
-
-# # Views
-# from .views import Login
-
-# urlpatterns = [
-#     path('login/', Login.as_view(), name='login'),
-# ]
-
 """ Users URL's """
 
 # Django

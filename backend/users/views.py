@@ -8,6 +8,8 @@ from rest_framework import status, viewsets
 from rest_framework.decorators import action
 from rest_framework.authtoken.models import Token
 from rest_framework.authtoken.serializers import AuthTokenSerializer
+from rest_framework.authentication import get_authorization_header
+from rest_framework.permissions import AllowAny, IsAuthenticated
 
 # Serializers
 from .serializers import UserTokenSerializer
@@ -20,6 +22,16 @@ class UserViewSet(viewsets.GenericViewSet):
 
     Handle sign up, login and account verification.
     """
+
+    def get_permissions(self):
+        """Assign permissions based on action."""
+        if self.action in ['login']:
+            permissions = [AllowAny]
+        else:
+            permissions = [IsAuthenticated]
+        return [p() for p in permissions]
+
+
     @action(detail=False, methods=['post'])
     def login(self, request):
         """ User log in """

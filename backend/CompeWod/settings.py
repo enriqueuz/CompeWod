@@ -36,6 +36,9 @@ ALLOWED_HOSTS = tuple(env.list('ALLOWED_HOSTS', default=[]))
 
 AUTH_USER_MODEL = 'users.User'
 
+#TODO: Change this.
+TOKEN_EXPIRED_AFTER_SECONDS = 10
+
 # Application definition
 
 DJANGO_APPS = [
@@ -101,6 +104,14 @@ DATABASES = {
     }
 }
 
+REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': (
+        'users.authentication.ExpiringTokenAuthentication',  # custom authentication class
+    ),
+    'DEFAULT_PERMISSION_CLASSES': (
+        'rest_framework.permissions.IsAuthenticated',
+    )
+}
 
 # Password validation
 # https://docs.djangoproject.com/en/3.1/ref/settings/#auth-password-validators
