@@ -12,7 +12,11 @@ from rest_framework.authentication import get_authorization_header
 from rest_framework.permissions import AllowAny, IsAuthenticated
 
 # Serializers
-from .serializers import UserTokenSerializer
+from .serializers.users import (
+    UserTokenSerializer, 
+    UserSignUpSerializer, 
+    UserModelSerializer
+    )
 
 # Utils
 from .utils import delete_user_sessions
@@ -25,7 +29,7 @@ class UserViewSet(viewsets.GenericViewSet):
 
     def get_permissions(self):
         """Assign permissions based on action."""
-        if self.action in ['login']:
+        if self.action in ['login', 'signup']:
             permissions = [AllowAny]
         else:
             permissions = [IsAuthenticated]
@@ -58,6 +62,15 @@ class UserViewSet(viewsets.GenericViewSet):
         else:
             return Response({'error':'Wrong email or password'}, 
                             status=status.HTTP_400_BAD_REQUEST)
+
+    @action(detail=False, methods=['post'])
+    def signup(self, request):
+        """User sign up."""
+        serializer = UserSignUpSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        user = serializer.save()
+        data = UserModelSerializer(user).data
+        return Response(data, status=status.HTTP_201_CREATED)
     
     @action(detail=False, methods=['post'])
     def logout(self, request):
@@ -79,3 +92,12 @@ class UserViewSet(viewsets.GenericViewSet):
                 {'message': 'There is no user with these credentials'}, 
                 status=status.HTTP_400_BAD_REQUEST
                 )
+    
+    @action(detail=False, methods=['post'])
+    def signup(self, request):
+        """User sign up."""
+        serializer = UserSignUpSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        user = serializer.save()
+        data = UserModelSerializer(user).data
+        return Response(data, status=status.HTTP_201_CREATED)

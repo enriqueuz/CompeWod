@@ -38,6 +38,7 @@ class User(CompeWodModel, AbstractUser):
     USERNAME_FIELD = 'email'
     REQUIRED_FIELDS = ['username', 'password', 'first_name', 'last_name']
 
+    # ???: Is this necessary?
     is_client = models.BooleanField(
         'client status',
         default=True,
