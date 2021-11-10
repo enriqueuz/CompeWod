@@ -36,8 +36,7 @@ ALLOWED_HOSTS = tuple(env.list('ALLOWED_HOSTS', default=[]))
 
 AUTH_USER_MODEL = 'users.User'
 
-#TODO: Change this.
-TOKEN_EXPIRED_AFTER_SECONDS = 10
+TOKEN_EXPIRED_AFTER_SECONDS = 3600
 
 # Application definition
 

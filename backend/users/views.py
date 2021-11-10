@@ -4,12 +4,15 @@
 
 # REST Framework
 from rest_framework.response import Response
-from rest_framework import status, viewsets
+from rest_framework import status, viewsets, mixins
 from rest_framework.decorators import action
 from rest_framework.authtoken.models import Token
 from rest_framework.authtoken.serializers import AuthTokenSerializer
 from rest_framework.authentication import get_authorization_header
 from rest_framework.permissions import AllowAny, IsAuthenticated
+
+# Models
+from .models.users import User
 
 # Serializers
 from .serializers.users import (
@@ -21,11 +24,16 @@ from .serializers.users import (
 # Utils
 from .utils import delete_user_sessions
 
-class UserViewSet(viewsets.GenericViewSet):
+class UserViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
     """ User view set.
 
     Handle sign up, login and account verification.
     """
+
+    # TODO: Filter this?
+    queryset = User.objects.all()
+    serializer_class = UserModelSerializer
+    lookup_field = 'username'
 
     def get_permissions(self):
         """Assign permissions based on action."""
