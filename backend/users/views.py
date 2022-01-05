@@ -17,14 +17,19 @@ from .models.users import User
 # Serializers
 from .serializers.users import (
     UserTokenSerializer, 
-    UserSignUpSerializer, 
+    UserSignUpSerializer,
+    UserReadOnlyModelSerializer, 
     UserModelSerializer
     )
+from .serializers.profiles import ProfileModelSerializer
 
 # Utils
 from .utils import delete_user_sessions
 
-class UserViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
+class UserViewSet(viewsets.GenericViewSet, 
+                    mixins.RetrieveModelMixin,
+                    # mixins.UpdateModelMixin
+                    ):
     """ User view set.
 
     Handle sign up, login and account verification.
@@ -77,7 +82,7 @@ class UserViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
         serializer = UserSignUpSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         user = serializer.save()
-        data = UserModelSerializer(user).data
+        data = UserReadOnlyModelSerializer(user).data
         return Response(data, status=status.HTTP_201_CREATED)
     
     @action(detail=False, methods=['post'])
@@ -101,11 +106,18 @@ class UserViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
                 status=status.HTTP_400_BAD_REQUEST
                 )
     
-    @action(detail=False, methods=['post'])
-    def signup(self, request):
-        """User sign up."""
-        serializer = UserSignUpSerializer(data=request.data)
+    @action(detail=True, methods=['put', 'patch'])
+    def profile(self, request, *args, **kwargs):
+        """Update profile data."""
+        user = self.get_object()
+        profile = user.profile
+        partial = request.method == 'PATCH'
+        serializer = ProfileModelSerializer(
+            profile,
+            data=request.data,
+            partial=partial
+        )
         serializer.is_valid(raise_exception=True)
-        user = serializer.save()
+        serializer.save()
         data = UserModelSerializer(user).data
-        return Response(data, status=status.HTTP_201_CREATED)
+        return Response(data)

@@ -26,7 +26,7 @@ class UserTokenSerializer(serializers.ModelSerializer):
 class UserModelSerializer(serializers.ModelSerializer):
     """User model serializer."""
 
-    profile = ProfileModelSerializer(read_only=True)
+    profile = ProfileModelSerializer()
 
     class Meta:
         """Meta class."""
@@ -40,6 +40,13 @@ class UserModelSerializer(serializers.ModelSerializer):
             'phone_number',
             'profile'
         )
+
+class UserReadOnlyModelSerializer(UserModelSerializer):
+
+    profile = ProfileModelSerializer(read_only=True)
+
+    class Meta:
+        read_only_fields = '__all__'
 
 
 class UserSignUpSerializer(serializers.Serializer):
